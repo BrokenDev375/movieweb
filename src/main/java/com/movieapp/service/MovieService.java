@@ -1,25 +1,43 @@
 package com.movieapp.service;
 
-import com.movieapp.entity.Movie;
+import com.movieapp.dto.MovieDto;
+import com.movieapp.dto.MovieUrlDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface MovieService {
 
-    List<Movie> findAll();
+    // --- CRUD phim ---
+    Page<MovieDto> getAllMovies(Pageable pageable);
 
-    Optional<Movie> findById(Long id);
+    MovieDto getMovieById(Long id);
 
-    Movie create(Movie movie);
+    MovieDto createMovie(MovieDto dto);
 
-    Movie update(Long id, Movie movie);
+    MovieDto updateMovie(Long id, MovieDto dto);
 
-    void delete(Long id);
+    void deleteMovie(Long id);
 
-    List<Movie> searchByTitle(String title);
+    // --- Tìm kiếm / lọc ---
+    Page<MovieDto> searchByTitle(String title, Pageable pageable);
 
-    List<Movie> findByNation(String nation);
+    Page<MovieDto> filterByNation(String nation, Pageable pageable);
 
-    List<Movie> findByGenreId(Long genreId);
+    Page<MovieDto> filterByGenre(Long genreId, Pageable pageable);
+
+    // --- Gắn / gỡ thể loại ---
+    MovieDto addGenreToMovie(Long movieId, Long genreId);
+
+    MovieDto removeGenreFromMovie(Long movieId, Long genreId);
+
+    // --- Quản lý tập phim ---
+    List<MovieUrlDto> getEpisodes(Long movieId);
+
+    MovieUrlDto addEpisode(Long movieId, MovieUrlDto dto);
+
+    MovieUrlDto updateEpisode(Long movieId, Long episodeId, MovieUrlDto dto);
+
+    void deleteEpisode(Long movieId, Long episodeId);
 }
