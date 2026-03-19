@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS movie_app;
-USE movie_app;
+CREATE DATABASE IF NOT EXISTS movie_web;
+USE movie_web;
 
 -- ========================
 -- USERS
