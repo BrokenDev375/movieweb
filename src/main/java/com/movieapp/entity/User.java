@@ -15,6 +15,9 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class User {
+    public static final String ROLE_ADMIN = "ADMIN";
+
+    public static final String ROLE_USER = "USER";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,9 +31,6 @@ public class User {
 
     @Column(nullable = false, unique = true, length = 100)
     private String email;
-
-    @Column(name = "phone_number", length = 20)
-    private String phoneNumber;
 
     @Column(length = 20)
     private String role;
