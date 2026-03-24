@@ -25,6 +25,7 @@ security:
   jwt:
     secret: change-this-to-a-very-long-random-secret-key-in-production
     expiration-ms: 86400000   # 24 hours
+  password-salt: i dont know
 
 logging:
   level:
