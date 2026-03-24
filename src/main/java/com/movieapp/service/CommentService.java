@@ -1,5 +1,6 @@
 package com.movieapp.service;
 
+import com.movieapp.dto.CommentDto;
 import com.movieapp.entity.Comment;
 
 import java.util.List;
@@ -7,15 +8,15 @@ import java.util.Optional;
 
 public interface CommentService {
 
-    List<Comment> findByMovieId(Long movieId);
+    List<CommentDto> findByMovieId(Long movieId);
 
-    List<Comment> findByUserId(Long userId);
+    List<CommentDto> findByUserId(Long userId);
 
-    Optional<Comment> findById(Long id);
+    Optional<CommentDto> findById(Long id);
 
-    Comment create(Comment comment);
+    CommentDto create(Long userId, Long movieId, String content);
 
-    Comment update(Long id, Comment comment);
+    CommentDto update(Long id, String content);
 
     void delete(Long id);
 }

@@ -1,9 +1,20 @@
 package com.movieapp.dto;
 
-/**
- * DTO for Rating requests and responses.
- * TODO: Add fields as needed by the team.
- */
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class RatingDto {
-    // TODO: implement fields
+    private Long movieId;
+    private Long userId;
+    private Byte score;
 }
