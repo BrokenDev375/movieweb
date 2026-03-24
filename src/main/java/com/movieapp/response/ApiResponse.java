@@ -31,11 +31,39 @@ public class ApiResponse<T> {
         return success(data, "Success");
     }
 
+    public static ApiResponse<Void> success() {
+        return ApiResponse.<Void>builder()
+                .timestamp(LocalDateTime.now())
+                .status(200)
+                .message("Success")
+                .data(null)
+                .build();
+    }
+
+    public static <T> ApiResponse<T> created(T data) {
+        return ApiResponse.<T>builder()
+                .timestamp(LocalDateTime.now())
+                .status(201)
+                .message("Created successfully")
+                .data(data)
+                .build();
+    }
+
+    public static ApiResponse<Void> message(String message) {
+        return ApiResponse.<Void>builder()
+                .timestamp(LocalDateTime.now())
+                .status(200)
+                .message(message)
+                .data(null)
+                .build();
+    }
+
     public static <T> ApiResponse<T> error(int status, String message) {
         return ApiResponse.<T>builder()
                 .timestamp(LocalDateTime.now())
                 .status(status)
                 .message(message)
+                .data(null)
                 .build();
     }
 }

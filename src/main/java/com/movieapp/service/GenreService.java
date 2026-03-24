@@ -1,19 +1,18 @@
 package com.movieapp.service;
 
-import com.movieapp.entity.Genre;
+import com.movieapp.dto.GenreDto;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface GenreService {
 
-    List<Genre> findAll();
+    List<GenreDto> getAllGenres(); // lấy tất cả thể loại
 
-    Optional<Genre> findById(Long id);
+    GenreDto getGenreById(Long id); // lấy 1 thể loại theo ID
 
-    Genre create(Genre genre);
+    GenreDto createGenre(GenreDto dto); // tạo thể loại mới
 
-    Genre update(Long id, Genre genre);
+    GenreDto updateGenre(Long id, GenreDto dto); // sửa thể loại
 
-    void delete(Long id);
+    void deleteGenre(Long id); // xoá thể loại
 }
