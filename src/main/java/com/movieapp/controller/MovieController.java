@@ -67,7 +67,7 @@ public class MovieController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteMovie(@PathVariable Long id) {
         movieService.deleteMovie(id);
-        return ResponseEntity.ok(ApiResponse.noContent("Movie deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Movie deleted successfully"));
     }
 
     // ── TÌM KIẾM / LỌC ───────────────────────────────────────────────────
@@ -110,8 +110,8 @@ public class MovieController {
             @PathVariable Long movieId,
             @PathVariable Long genreId) {
         return ResponseEntity.ok(ApiResponse.success(
-                "Genre added to movie",
-                movieService.addGenreToMovie(movieId, genreId)));
+                movieService.addGenreToMovie(movieId, genreId),
+                "Genre added to movie"));
     }
 
     // DELETE /api/movies/{movieId}/genres/{genreId}
@@ -120,8 +120,8 @@ public class MovieController {
             @PathVariable Long movieId,
             @PathVariable Long genreId) {
         return ResponseEntity.ok(ApiResponse.success(
-                "Genre removed from movie",
-                movieService.removeGenreFromMovie(movieId, genreId)));
+                movieService.removeGenreFromMovie(movieId, genreId),
+                "Genre removed from movie"));
     }
 
     // ── TẬP PHIM ─────────────────────────────────────────────────────────
@@ -159,6 +159,6 @@ public class MovieController {
             @PathVariable Long movieId,
             @PathVariable Long episodeId) {
         movieService.deleteEpisode(movieId, episodeId);
-        return ResponseEntity.ok(ApiResponse.noContent("Episode deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Episode deleted successfully"));
     }
 }

@@ -50,6 +50,6 @@ public class GenreController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteGenre(@PathVariable Long id) {
         genreService.deleteGenre(id);
-        return ResponseEntity.ok(ApiResponse.noContent("Genre deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Genre deleted successfully"));
     }
 }
