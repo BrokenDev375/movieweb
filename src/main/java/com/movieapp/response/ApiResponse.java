@@ -31,6 +31,10 @@ public class ApiResponse<T> {
         return success(data, "Success");
     }
 
+    public static ApiResponse<Void> success() {
+        return success(null, "Success");
+    }
+
     public static <T> ApiResponse<T> error(int status, String message) {
         return ApiResponse.<T>builder()
                 .timestamp(LocalDateTime.now())
