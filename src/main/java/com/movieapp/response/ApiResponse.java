@@ -32,6 +32,7 @@ public class ApiResponse<T> {
     }
 
     public static ApiResponse<Void> success() {
+
         return ApiResponse.<Void>builder()
                 .timestamp(LocalDateTime.now())
                 .status(200)
