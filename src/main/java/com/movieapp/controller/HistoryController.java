@@ -3,6 +3,10 @@ package com.movieapp.controller;
 import com.movieapp.dto.HistoryDto;
 import com.movieapp.response.ApiResponse;
 import com.movieapp.service.HistoryService;
+import com.movieapp.repository.UserRepository;
+import com.movieapp.entity.User;
+import com.movieapp.exception.AppException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -17,22 +21,18 @@ import org.springframework.web.bind.annotation.*;
 public class HistoryController {
 
     private final HistoryService historyService;
+    private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getHistory() {
-        // TODO: get current user id from security context
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
         List<HistoryDto> historyDtos = historyService.findByUserId(userId);
         return ResponseEntity.ok(ApiResponse.success(historyDtos));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<?>> saveHistory(@RequestBody HistoryDto historyRequest) {
-        // TODO: implement
-        Long userId = 1L;
-
-        // 2. Gọi service xử lý logic Save hoặc Update
-        // Đảm bảo HistoryDto của bạn có các trường movieId và watchTime
+        Long userId = getCurrentUserId();
         HistoryDto savedDto = historyService.saveOrUpdate(
                 userId,
                 historyRequest.getMovieId(),
@@ -49,9 +49,15 @@ public class HistoryController {
 
     @DeleteMapping
     public ResponseEntity<ApiResponse<?>> clearHistory() {
-        // TODO: implement - clear all history for current user
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
         historyService.deleteAllByUserId(userId);
         return ResponseEntity.ok(ApiResponse.success(null, "History cleared"));
+    }
+
+    private Long getCurrentUserId() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsernameOrEmail(username)
+                .map(User::getId)
+                .orElseThrow(() -> new AppException("User not found"));
     }
 }
