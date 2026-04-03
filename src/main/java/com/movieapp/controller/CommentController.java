@@ -3,6 +3,10 @@ package com.movieapp.controller;
 import com.movieapp.dto.CommentDto;
 import com.movieapp.response.ApiResponse;
 import com.movieapp.service.CommentService;
+import com.movieapp.repository.UserRepository;
+import com.movieapp.entity.User;
+import com.movieapp.exception.AppException;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,11 +22,11 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
 
     private final CommentService commentService;
+    private final UserRepository userRepository;
 
     @PostMapping("/comments")
     public ResponseEntity<ApiResponse<?>> addComment(@RequestBody CommentDto commentRequest) {
-        // TODO: implement
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
         CommentDto saveCommentDto = commentService.create(userId, commentRequest.getMovieId(),
                 commentRequest.getContent());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(saveCommentDto, "Comment added"));
@@ -44,8 +48,14 @@ public class CommentController {
 
     @DeleteMapping("/comments/{id}")
     public ResponseEntity<ApiResponse<?>> deleteComment(@PathVariable Long id) {
-        // TODO: implement
         commentService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Comment deleted"));
+    }
+
+    private Long getCurrentUserId() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsernameOrEmail(username)
+                .map(User::getId)
+                .orElseThrow(() -> new AppException("User not found"));
     }
 }

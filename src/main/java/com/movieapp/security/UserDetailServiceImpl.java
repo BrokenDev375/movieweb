@@ -16,13 +16,12 @@ public class UserDetailServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsernameOrEmail(username).orElseThrow(
-                () -> new UsernameNotFoundException("Username không tồn tại")
-        );
+                () -> new UsernameNotFoundException("Username không tồn tại"));
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
                 .password(user.getPassword())
-                .authorities("ROLE_"+user.getRole().toUpperCase())
+                .authorities("ROLE_" + user.getRole().toUpperCase())
                 .build();
 
     }
