@@ -15,8 +15,10 @@ import com.movieapp.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -99,21 +101,33 @@ public class MovieServiceImpl implements MovieService {
     // =====================================================================
 
     @Override
-    public Page<MovieDto> searchByTitle(String title, Pageable pageable) {
-        return movieRepository.findByTitleContainingIgnoreCase(title, pageable).map(this::toDto);
-    }
-
-    @Override
-    public Page<MovieDto> filterByNation(String nation, Pageable pageable) {
-        return movieRepository.findByNationIgnoreCase(nation, pageable).map(this::toDto);
-    }
-
-    @Override
-    public Page<MovieDto> filterByGenre(Long genreId, Pageable pageable) {
-        if (!genreRepository.existsById(genreId)) {
+    public Page<MovieDto> searchMovies(String keyword, Long genreId, String nation, Pageable pageable) {
+        if (genreId != null && !genreRepository.existsById(genreId)) {
             throw new ResourceNotFoundException("Genre", genreId);
         }
-        return movieRepository.findByGenreId(genreId, pageable).map(this::toDto);
+
+        Specification<Movie> spec = Specification.where(null);
+
+        if (StringUtils.hasText(keyword)) {
+            String normalizedKeyword = keyword.trim().toLowerCase();
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("title")), "%" + normalizedKeyword + "%"));
+        }
+
+        if (StringUtils.hasText(nation)) {
+            String normalizedNation = nation.trim().toLowerCase();
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(cb.lower(root.get("nation")), normalizedNation));
+        }
+
+        if (genreId != null) {
+            spec = spec.and((root, query, cb) -> {
+                query.distinct(true);
+                return cb.equal(root.join("genres").get("id"), genreId);
+            });
+        }
+
+        return movieRepository.findAll(spec, pageable).map(this::toDto);
     }
 
     // =====================================================================

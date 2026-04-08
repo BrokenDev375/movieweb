@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface MovieService {
 
-    // --- CRUD phim ---
+    // CRUD movie
     Page<MovieDto> getAllMovies(Pageable pageable);
 
     MovieDto getMovieById(Long id);
@@ -20,19 +20,15 @@ public interface MovieService {
 
     void deleteMovie(Long id);
 
-    // --- Tìm kiếm / lọc ---
-    Page<MovieDto> searchByTitle(String title, Pageable pageable);
+    // Search / filter
+    Page<MovieDto> searchMovies(String keyword, Long genreId, String nation, Pageable pageable);
 
-    Page<MovieDto> filterByNation(String nation, Pageable pageable);
-
-    Page<MovieDto> filterByGenre(Long genreId, Pageable pageable);
-
-    // --- Gắn / gỡ thể loại ---
+    // Genre assignment
     MovieDto addGenreToMovie(Long movieId, Long genreId);
 
     MovieDto removeGenreFromMovie(Long movieId, Long genreId);
 
-    // --- Quản lý tập phim ---
+    // Episode management
     List<MovieUrlDto> getEpisodes(Long movieId);
 
     MovieUrlDto addEpisode(Long movieId, MovieUrlDto dto);

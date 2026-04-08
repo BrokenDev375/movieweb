@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,6 +50,7 @@ public class MovieController {
 
     // POST /api/movies
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MovieDto>> createMovie(@Valid @RequestBody MovieDto dto) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -57,6 +59,7 @@ public class MovieController {
 
     // PUT /api/movies/{id}
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MovieDto>> updateMovie(
             @PathVariable Long id,
             @Valid @RequestBody MovieDto dto) {
@@ -65,6 +68,7 @@ public class MovieController {
 
     // DELETE /api/movies/{id}
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteMovie(@PathVariable Long id) {
         movieService.deleteMovie(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Movie deleted successfully"));
@@ -72,40 +76,33 @@ public class MovieController {
 
     // ── TÌM KIẾM / LỌC ───────────────────────────────────────────────────
 
-    // GET /api/movies/search?title=avengers
+    // GET /api/movies/search?keyword=avengers&genreId=1&nation=Korea
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<MovieDto>>> searchByTitle(
-            @RequestParam String title,
+    public ResponseEntity<ApiResponse<Page<MovieDto>>> searchMovies(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long genreId,
+            @RequestParam(required = false) String nation,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success(
-                movieService.searchByTitle(title, PageRequest.of(page, size))));
-    }
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+        Sort sort = direction.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
 
-    // GET /api/movies/filter/nation?nation=Korea
-    @GetMapping("/filter/nation")
-    public ResponseEntity<ApiResponse<Page<MovieDto>>> filterByNation(
-            @RequestParam String nation,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(
-                movieService.filterByNation(nation, PageRequest.of(page, size))));
-    }
-
-    // GET /api/movies/filter/genre/{genreId}
-    @GetMapping("/filter/genre/{genreId}")
-    public ResponseEntity<ApiResponse<Page<MovieDto>>> filterByGenre(
-            @PathVariable Long genreId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success(
-                movieService.filterByGenre(genreId, PageRequest.of(page, size))));
+                movieService.searchMovies(
+                        keyword,
+                        genreId,
+                        nation,
+                        PageRequest.of(page, size, sort))));
     }
 
     // ── GẮN / GỠ THỂ LOẠI ────────────────────────────────────────────────
 
     // POST /api/movies/{movieId}/genres/{genreId}
     @PostMapping("/{movieId}/genres/{genreId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MovieDto>> addGenre(
             @PathVariable Long movieId,
             @PathVariable Long genreId) {
@@ -116,6 +113,7 @@ public class MovieController {
 
     // DELETE /api/movies/{movieId}/genres/{genreId}
     @DeleteMapping("/{movieId}/genres/{genreId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MovieDto>> removeGenre(
             @PathVariable Long movieId,
             @PathVariable Long genreId) {
@@ -135,6 +133,7 @@ public class MovieController {
 
     // POST /api/movies/{movieId}/episodes
     @PostMapping("/{movieId}/episodes")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MovieUrlDto>> addEpisode(
             @PathVariable Long movieId,
             @Valid @RequestBody MovieUrlDto dto) {
@@ -145,6 +144,7 @@ public class MovieController {
 
     // PUT /api/movies/{movieId}/episodes/{episodeId}
     @PutMapping("/{movieId}/episodes/{episodeId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MovieUrlDto>> updateEpisode(
             @PathVariable Long movieId,
             @PathVariable Long episodeId,
@@ -155,6 +155,7 @@ public class MovieController {
 
     // DELETE /api/movies/{movieId}/episodes/{episodeId}
     @DeleteMapping("/{movieId}/episodes/{episodeId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteEpisode(
             @PathVariable Long movieId,
             @PathVariable Long episodeId) {

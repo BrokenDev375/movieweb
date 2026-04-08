@@ -1,10 +1,9 @@
 package com.movieapp.service;
 
+import com.movieapp.dto.UpdateProfileDto;
 import com.movieapp.dto.UserDto;
-import com.movieapp.entity.User;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface UserService {
 
@@ -12,7 +11,9 @@ public interface UserService {
 
     UserDto getUserInfo(String username);
 
+    UserDto updateProfile(String username, UpdateProfileDto updateProfileDto);
+
     void deleteUser(Long id);
 
-    void changePassword(String username, String oldPassword, String newPassword);
+    void changePassword(String username, String oldPassword, String newPassword, String confirmPassword);
 }

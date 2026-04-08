@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class GenreController {
 
     // POST /api/genres → tạo thể loại mới
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<GenreDto>> createGenre(@Valid @RequestBody GenreDto dto) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -40,6 +42,7 @@ public class GenreController {
 
     // PUT /api/genres/{id} → cập nhật thể loại
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<GenreDto>> updateGenre(
             @PathVariable Long id,
             @Valid @RequestBody GenreDto dto) {
@@ -48,6 +51,7 @@ public class GenreController {
 
     // DELETE /api/genres/{id} → xoá thể loại
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteGenre(@PathVariable Long id) {
         genreService.deleteGenre(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Genre deleted successfully"));
