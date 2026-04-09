@@ -19,3 +19,8 @@ Thumbs.db
 # Local tools
 .agents/
 skills-lock.json
+
+/backend/target/
+/frontend/node_modules/
+/frontend/dist/
+/.idea/
