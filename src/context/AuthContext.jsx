@@ -1,6 +1,6 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 
-export const AuthContext = createContext();
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -8,8 +8,7 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         
-        // CẬP NHẬT Ở ĐÂY: Kiểm tra an toàn trước khi parse JSON
-        // Đảm bảo có dữ liệu VÀ dữ liệu đó không phải là chữ "undefined"
+      
         if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
             try {
                 setUser(JSON.parse(storedUser));
@@ -22,14 +21,17 @@ export const AuthProvider = ({ children }) => {
 
     const login = (userData) => {
         // Chỉ lưu nếu userData thực sự có dữ liệu
-        if (userData) {
-            setUser(userData);
-            localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        if (userData.accessToken) {            
+            localStorage.setItem('token', userData.accessToken);
         }
+        localStorage.setItem('user', JSON.stringify(userData));
     };
 
     const logout = () => {
         setUser(null);
+        localStorage.removeItem('token');
+
         localStorage.removeItem('user');
     };
 
@@ -38,4 +40,8 @@ export const AuthProvider = ({ children }) => {
             {children}
         </AuthContext.Provider>
     );
+};
+
+export const useAuth = () => {
+    return useContext(AuthContext);
 };

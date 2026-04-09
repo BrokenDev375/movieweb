@@ -1,11 +1,11 @@
 import React, { useState, useContext } from 'react';
 import { FaUserCircle, FaPaperPlane } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import { AuthContext } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { movieApi } from '../../api/movieApi';
 
 const CommentSection = ({ movieId, comments, setComments }) => {
-    const { user } = useContext(AuthContext); 
+    const { user } = useAuth();
     const [newComment, setNewComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 

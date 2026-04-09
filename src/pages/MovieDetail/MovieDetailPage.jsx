@@ -3,12 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { movieApi } from '../../api/movieApi';
 import { FaArrowLeft, FaGlobeAsia, FaStar, FaPlay, FaHeart, FaRegHeart } from 'react-icons/fa';
 import CommentSection from '../../components/Movie/CommentSection'; 
-import { AuthContext } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { interactApi } from '../../api/interactApi';
 
 const MovieDetailPage = () => {
     const { id } = useParams();
-    const {user} = useContext(AuthContext);
+    const {user} = useAuth();
     const [movie, setMovie] = useState(null);
     const [videoUrl, setVideoUrl] = useState('');
     const [comments, setComments] = useState([]);
@@ -50,11 +50,13 @@ const MovieDetailPage = () => {
                 const movieData = await movieApi.getMovieById(id);
                 setMovie(movieData);
 
-                const urlData = await movieApi.getMovieUrls(id);
-                if (urlData && urlData.length > 0) {
-                    setVideoUrl(urlData[0].url); 
+                if (movieData.trailerUrl) {
+                    setVideoUrl(movieData.trailerUrl); 
+                } else if (movieData.trailer_url) {
+                    setVideoUrl(movieData.trailer_url); 
+                } else {
+                    console.warn("Bộ phim này chưa có link trailer_url trong Database");
                 }
-
                 const cmtData = await movieApi.getCommentsByMovie(id);
                 if (Array.isArray(cmtData)) setComments(cmtData);
 
@@ -73,8 +75,24 @@ const MovieDetailPage = () => {
     if (!movie) return <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 text-red-500 text-2xl font-bold">Lỗi: Không tìm thấy thông tin phim từ Backend!</div>;
 
     const poster = movie.posterUrl || movie.poster_url || 'https://placehold.co/300x450/1f2937/ffffff?text=No+Poster';
-
-    return (
+    // Hàm nhận diện và chuyển đổi link YouTube thường thành link Embed chuẩn
+    const getYouTubeEmbedUrl = (url) => {
+        if (!url) return null;
+        if (url.includes('/embed/')) return url; 
+        
+        // Cắt lấy ID video từ các định dạng link YouTube khác nhau
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        
+        if (match && match[2].length === 11) {
+            return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
+        }
+        return url; // Nếu không phải YouTube thì trả về link gốc
+    };
+    
+    // Kiểm tra xem link hiện tại có phải của YouTube không
+    const isYouTube = videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'));
+    return (    
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200 font-sans pb-20 transition-colors duration-300">
             
             {/* Thanh điều hướng quay lại */}
@@ -91,10 +109,23 @@ const MovieDetailPage = () => {
                 {/* === KHU VỰC 1: TRÌNH PHÁT VIDEO === */}
                 <div className="mb-12 bg-gray-900 dark:bg-black rounded-xl overflow-hidden shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-800 aspect-video relative group flex items-center justify-center transition-colors duration-300">
                     {videoUrl ? (
-                        <video controls autoPlay className="w-full h-full object-contain">
-                            <source src={videoUrl} type="video/mp4" />
-                            Trình duyệt không hỗ trợ thẻ video.
-                        </video>
+                        isYouTube ? (
+                            // NẾU LÀ YOUTUBE: Dùng thẻ iframe
+                            <iframe 
+                                className="w-full h-full object-cover"
+                                src={getYouTubeEmbedUrl(videoUrl)} 
+                                title="YouTube video player" 
+                                frameBorder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowFullScreen
+                            ></iframe>
+                        ) : (
+                            // NẾU LÀ FILE MP4 BÌNH THƯỜNG: Dùng thẻ video
+                            <video controls autoPlay className="w-full h-full object-contain">
+                                <source src={videoUrl} type="video/mp4" />
+                                Trình duyệt không hỗ trợ thẻ video.
+                            </video>
+                        )
                     ) : (
                         <div className="text-center p-10">
                             <FaPlay className="text-6xl text-gray-400 dark:text-gray-700 mx-auto mb-4" />
@@ -118,7 +149,7 @@ const MovieDetailPage = () => {
                         
                         <div className="flex flex-wrap items-center gap-6 mb-8 text-sm md:text-base font-medium">
                             
-                            {/* KHU VỰC CHỈNH SỬA: HIỂN THỊ ĐIỂM TRUNG BÌNH */}
+                            {/* HIỂN THỊ ĐIỂM TRUNG BÌNH */}
                             <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-yellow-500 dark:text-yellow-400">
                                 <FaStar />
                                 <span className="text-gray-800 dark:text-white">
@@ -144,6 +175,20 @@ const MovieDetailPage = () => {
                                 <FaGlobeAsia className="text-red-600 dark:text-red-500 text-xl" />
                                 <span>{movie.nation || 'Chưa rõ'}</span>
                             </div>
+
+                            {/* ===== PHẦN HIỂN THỊ THỂ LOẠI (GENRES) ĐƯỢC THÊM MỚI ===== */}
+                            {movie.genres && movie.genres.length > 0 && (
+                                <div className="flex flex-wrap items-center gap-2 border-l border-gray-300 dark:border-gray-700 pl-4 ml-2">
+                                    {movie.genres.map((genre, index) => (
+                                        <span 
+                                            key={index} 
+                                            className="text-gray-700 dark:text-gray-300 bg-gray-200/50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 px-3 py-1 rounded-full text-xs font-semibold tracking-wide transition-colors duration-300"
+                                        >
+                                            {typeof genre === 'string' ? genre : genre.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
 
                             <span className="bg-red-600 text-white font-bold px-4 py-1.5 rounded-md uppercase tracking-wider text-xs shadow-lg shadow-red-600/30">
                                 Full HD

@@ -7,6 +7,8 @@ import MovieDetailPage from './pages/MovieDetail/MovieDetailPage';
 import LoginPage from './pages/Auth/LoginPage'; 
 import FavoritePage from './pages/Favourite/FavouritePage'; 
 import HistoryPage from './pages/History/HistoryPage';
+import SearchPage from './pages/Search/SearchPage';
+import RegisterPage from './pages/Auth/RegisterPage';
 
 function App() {
   return (
@@ -17,9 +19,10 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/movie/:id" element={<MovieDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
-          
           <Route path="/favorites" element={<FavoritePage />} />
           <Route path="/history" element={<HistoryPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Routes>
       </div>
     </AuthProvider>  
