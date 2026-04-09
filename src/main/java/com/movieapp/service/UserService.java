@@ -2,14 +2,18 @@ package com.movieapp.service;
 
 import com.movieapp.dto.UpdateProfileDto;
 import com.movieapp.dto.UserDto;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
-    List<UserDto> getAllUsers();
+    Page<UserDto> searchUsers(String username, String email, String role, Pageable pageable);
 
     UserDto getUserInfo(String username);
+
+    UserDto getUserById(Long id);
+
+    UserDto updateUserRole(Long id, String role);
 
     UserDto updateProfile(String username, UpdateProfileDto updateProfileDto);
 
