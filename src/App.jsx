@@ -9,6 +9,7 @@ import FavoritePage from './pages/Favourite/FavouritePage';
 import HistoryPage from './pages/History/HistoryPage';
 import SearchPage from './pages/Search/SearchPage';
 import RegisterPage from './pages/Auth/RegisterPage';
+import ProfilePage from './pages/Profile/ProfilePage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </div>
     </AuthProvider>  
