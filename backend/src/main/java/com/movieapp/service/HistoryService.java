@@ -1,7 +1,7 @@
 package com.movieapp.service;
 
+import com.movieapp.dto.ContinueWatchingDto;
 import com.movieapp.dto.HistoryDto;
-import com.movieapp.entity.History;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,11 +10,13 @@ public interface HistoryService {
 
     List<HistoryDto> findByUserId(Long userId);
 
-    Optional<HistoryDto> findByUserIdAndMovieId(Long userId, Long movieId);
+    List<ContinueWatchingDto> getContinueWatching(Long userId);
 
-    HistoryDto saveOrUpdate(Long userId, Long movieId, Integer watchTime);
+    Optional<HistoryDto> findByUserIdAndMovieUrlId(Long userId, Long movieUrlId);
 
-    void delete(Long id);
+    HistoryDto saveOrUpdate(Long userId, Long movieUrlId, Integer watchTime);
+
+    void delete(Long userId, Long id);
 
     void deleteAllByUserId(Long userId);
 }

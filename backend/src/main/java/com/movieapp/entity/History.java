@@ -23,8 +23,8 @@ public class History {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "movie_id", nullable = false)
-    private Movie movie;
+    @JoinColumn(name = "movie_url_id", nullable = false)
+    private MovieUrl movieUrl;
 
     @Column(name = "watch_time")
     private Integer watchTime;

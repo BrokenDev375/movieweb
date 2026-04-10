@@ -66,7 +66,7 @@ INSERT INTO favorites (user_id, movie_id) VALUES
 -- ========================
 -- HISTORIES
 -- ========================
-INSERT INTO histories (user_id, movie_id, watch_time) VALUES
+INSERT INTO histories (user_id, movie_url_id, watch_time) VALUES
 (1, 1, 120),
 (1, 2, 60),
 (2, 3, 90);

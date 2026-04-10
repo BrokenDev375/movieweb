@@ -1,11 +1,13 @@
 package com.movieapp.controller;
 
+import com.movieapp.dto.SaveHistoryDto;
 import com.movieapp.dto.HistoryDto;
 import com.movieapp.response.ApiResponse;
 import com.movieapp.service.HistoryService;
 import com.movieapp.repository.UserRepository;
 import com.movieapp.entity.User;
 import com.movieapp.exception.AppException;
+import jakarta.validation.Valid;
 import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 
@@ -30,20 +32,26 @@ public class HistoryController {
         return ResponseEntity.ok(ApiResponse.success(historyDtos));
     }
 
+    @GetMapping("/continue-watching")
+    public ResponseEntity<ApiResponse<?>> getContinueWatching() {
+        Long userId = getCurrentUserId();
+        return ResponseEntity.ok(ApiResponse.success(historyService.getContinueWatching(userId)));
+    }
+
     @PostMapping
-    public ResponseEntity<ApiResponse<?>> saveHistory(@RequestBody HistoryDto historyRequest) {
+    public ResponseEntity<ApiResponse<?>> saveHistory(@Valid @RequestBody SaveHistoryDto historyRequest) {
         Long userId = getCurrentUserId();
         HistoryDto savedDto = historyService.saveOrUpdate(
                 userId,
-                historyRequest.getMovieId(),
+                historyRequest.getMovieUrlId(),
                 historyRequest.getWatchTime());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(savedDto, "History saved"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> deleteHistory(@PathVariable Long id) {
-        // TODO: implement
-        historyService.delete(id);
+        Long userId = getCurrentUserId();
+        historyService.delete(userId, id);
         return ResponseEntity.ok(ApiResponse.success(null, "History deleted"));
     }
 

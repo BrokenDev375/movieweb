@@ -58,10 +58,6 @@ public class Movie {
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<History> histories = new ArrayList<>();
-
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @Builder.Default
     private List<Favorite> favorites = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY)

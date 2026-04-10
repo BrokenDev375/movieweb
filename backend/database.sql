@@ -132,20 +132,23 @@
     -- ========================
     -- HISTORY
     -- ========================
-    CREATE TABLE histories (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY,
-        user_id BIGINT NOT NULL,
-        movie_id BIGINT NOT NULL,
-        watch_time INT,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE histories (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    movie_url_id BIGINT NOT NULL,
+    watch_time INT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-        CONSTRAINT fk_history_user
-            FOREIGN KEY (user_id)
-            REFERENCES users(id)
-            ON DELETE CASCADE,
+    CONSTRAINT uk_history_user_movie_url
+        UNIQUE (user_id, movie_url_id),
 
-        CONSTRAINT fk_history_movie
-            FOREIGN KEY (movie_id)
-            REFERENCES movies(id)
-            ON DELETE CASCADE
-    );
+    CONSTRAINT fk_history_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_history_movie_url
+        FOREIGN KEY (movie_url_id)
+        REFERENCES movie_urls(id)
+        ON DELETE CASCADE
+);
