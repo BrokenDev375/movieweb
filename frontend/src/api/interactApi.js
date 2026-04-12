@@ -34,11 +34,24 @@ export const interactApi = {
     },
     getHistories: async (userId) => {
         try {
-            const response = await axiosClient.get(`/histories?userId=${userId}`);
+            const response = await axiosClient.get(`/history`);
             return response.data.data || response.data; 
         } catch (error) {
             console.error("Lỗi lấy lịch sử xem:", error);
             return [];
+        }
+    },
+    saveHistory: async (movieUrlId, watchTime = 0) => {
+        try {
+            const payload = {
+                movieUrlId: movieUrlId,
+                watchTime: watchTime
+            };
+            const response = await axiosClient.post('/history', payload);
+            return response.data;
+        } catch (error) {
+            console.error("Lỗi lưu lịch sử:", error);
+            throw error;
         }
     }
 };

@@ -5,6 +5,7 @@ import { FaArrowLeft, FaGlobeAsia, FaStar, FaPlay, FaHeart, FaRegHeart } from 'r
 import CommentSection from '../../components/Movie/CommentSection'; 
 import { useAuth } from '../../context/AuthContext';
 import { interactApi } from '../../api/interactApi';
+import VideoPlayer from '../../components/Movie/VideoPlayer';
 
 const MovieDetailPage = () => {
     const { id } = useParams();
@@ -14,6 +15,9 @@ const MovieDetailPage = () => {
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isFavorite, setIsFavorite] = useState(false);
+    const [averageRating, setAverageRating] = useState(0);
+    const [episodes, setEpisodes] = useState([]);
+    const [currentEpisode, setCurrentEpisode] = useState(null);
 
     useEffect(() => {
         if(user && id){
@@ -49,16 +53,20 @@ const MovieDetailPage = () => {
             try {
                 const movieData = await movieApi.getMovieById(id);
                 setMovie(movieData);
-
-                if (movieData.trailerUrl) {
-                    setVideoUrl(movieData.trailerUrl); 
-                } else if (movieData.trailer_url) {
-                    setVideoUrl(movieData.trailer_url); 
+                const urlsData = await movieApi.getMovieUrls(id);
+                if (urlsData && urlsData.length > 0) {
+                    setEpisodes(urlsData);
+                    setCurrentEpisode(urlsData[0]); 
+                    setVideoUrl(urlsData[0].url);
+                } else if (movieData.trailerUrl || movieData.trailer_url) {
+                    setVideoUrl(movieData.trailerUrl || movieData.trailer_url); 
                 } else {
                     console.warn("Bộ phim này chưa có link trailer_url trong Database");
                 }
                 const cmtData = await movieApi.getCommentsByMovie(id);
                 if (Array.isArray(cmtData)) setComments(cmtData);
+                const ratingData = await movieApi.getAverageRating(id);
+                setAverageRating(ratingData);
 
             } catch (err) {
                 console.error("Lỗi khi tải chi tiết phim:", err);
@@ -70,6 +78,24 @@ const MovieDetailPage = () => {
         fetchDetailData();
         window.scrollTo(0, 0); 
     }, [id]);
+    // THÊM MỚI: Tự động lưu lịch sử xem phim
+    useEffect(() => {
+        const saveWatchHistory = async () => {
+            // Chỉ lưu khi có user đăng nhập và đã xác định được tập phim đang xem (currentEpisode)
+            if (user && currentEpisode && currentEpisode.id) {
+                try {
+                    // Gọi API lưu lịch sử với watchTime = 0 (đánh dấu là đã bắt đầu xem)
+                    await interactApi.saveHistory(currentEpisode.id, 0);
+                    console.log("Đã lưu phim vào lịch sử!");
+                } catch (error) {
+                    console.error("Lỗi lưu lịch sử (có thể do API hoặc Backend):", error);
+                }
+            }
+        };
+
+        // Kích hoạt hàm này mỗi khi biến currentEpisode thay đổi (người dùng chọn tập khác)
+        saveWatchHistory();
+    }, [currentEpisode, user]);
 
     if (loading) return <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white text-2xl">Đang tải dữ liệu phim...</div>;
     if (!movie) return <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 text-red-500 text-2xl font-bold">Lỗi: Không tìm thấy thông tin phim từ Backend!</div>;
@@ -107,10 +133,9 @@ const MovieDetailPage = () => {
 
             <div className="max-w-7xl mx-auto p-4 md:p-8 mt-4">
                 {/* === KHU VỰC 1: TRÌNH PHÁT VIDEO === */}
-                <div className="mb-12 bg-gray-900 dark:bg-black rounded-xl overflow-hidden shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-800 aspect-video relative group flex items-center justify-center transition-colors duration-300">
+                <div className="mb-6 bg-gray-900 dark:bg-black rounded-xl overflow-hidden shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-800 aspect-video relative group flex items-center justify-center transition-colors duration-300">
                     {videoUrl ? (
                         isYouTube ? (
-                            // NẾU LÀ YOUTUBE: Dùng thẻ iframe
                             <iframe 
                                 className="w-full h-full object-cover"
                                 src={getYouTubeEmbedUrl(videoUrl)} 
@@ -120,11 +145,11 @@ const MovieDetailPage = () => {
                                 allowFullScreen
                             ></iframe>
                         ) : (
-                            // NẾU LÀ FILE MP4 BÌNH THƯỜNG: Dùng thẻ video
-                            <video controls autoPlay className="w-full h-full object-contain">
-                                <source src={videoUrl} type="video/mp4" />
-                                Trình duyệt không hỗ trợ thẻ video.
-                            </video>
+                            // SỬ DỤNG COMPONENT VIDEO PLAYER THÔNG MINH TẠI ĐÂY
+                            <VideoPlayer 
+                                videoUrl={videoUrl} 
+                                movieUrlId={currentEpisode ? currentEpisode.id : null} 
+                            />
                         )
                     ) : (
                         <div className="text-center p-10">
@@ -133,6 +158,31 @@ const MovieDetailPage = () => {
                         </div>
                     )}
                 </div>
+
+                {/* THÊM MỚI: KHU VỰC CHỌN TẬP PHIM (Chỉ hiện nếu có nhiều hơn 1 tập) */}
+                {episodes.length > 0 && (
+                    <div className="mb-12 bg-white dark:bg-gray-900/50 p-6 rounded-2xl border border-gray-200 dark:border-gray-800">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Danh sách tập phim</h3>
+                        <div className="flex flex-wrap gap-3">
+                            {episodes.map((ep) => (
+                                <button 
+                                    key={ep.id}
+                                    onClick={() => {
+                                        setCurrentEpisode(ep);
+                                        setVideoUrl(ep.url);
+                                    }}
+                                    className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-300 ${
+                                        currentEpisode?.id === ep.id 
+                                        ? 'bg-red-600 text-white shadow-lg shadow-red-600/40 transform scale-105' 
+                                        : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700'
+                                    }`}
+                                >
+                                    {ep.name || `Tập ${ep.episode || index + 1}`}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* === KHU VỰC 2: THÔNG TIN CHI TIẾT PHIM === */}
                 <div className="flex flex-col md:flex-row gap-8 mb-16 bg-white dark:bg-gray-900/50 p-6 md:p-10 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-md dark:shadow-none transition-colors duration-300">
@@ -153,8 +203,8 @@ const MovieDetailPage = () => {
                             <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-yellow-500 dark:text-yellow-400">
                                 <FaStar />
                                 <span className="text-gray-800 dark:text-white">
-                                    {movie.averageRating && movie.averageRating > 0 
-                                        ? `${movie.averageRating.toFixed(1)} / 5` 
+                                    {averageRating > 0 
+                                        ? `${Number(averageRating).toFixed(1)} / 5` 
                                         : "Chưa có đánh giá"}
                                 </span>
                             </div>

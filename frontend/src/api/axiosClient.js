@@ -17,4 +17,16 @@ axiosClient.interceptors.request.use((config) => {
     return config;
 });
 
+axiosClient.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            console.error("Token không hợp lệ hoặc đã hết hạn!");          
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default axiosClient;

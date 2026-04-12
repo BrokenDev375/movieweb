@@ -17,7 +17,7 @@ const HistoryPage = () => {
         }
 
         const fetchHistories = async () => {
-            const data = await interactApi.getHistories(user.id);
+            const data = await interactApi.getHistories();
             setHistories(data || []);
             setLoading(false);
         };

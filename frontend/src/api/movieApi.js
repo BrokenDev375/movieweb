@@ -45,5 +45,14 @@ export const movieApi = {
     postComment: async (commentData) => {
         const response = await axiosClient.post('/comments', commentData);
         return response.data;
-    }
+    },
+    getAverageRating: async (movieId) => {
+        try {
+            const response = await axiosClient.get(`/movies/${movieId}/ratings/average`);
+            return response.data.data; 
+        } catch (error) {
+            console.warn("Lỗi lấy điểm đánh giá:", error.message);
+            return 0; 
+        }
+    },
 };
