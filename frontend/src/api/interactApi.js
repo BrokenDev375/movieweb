@@ -8,31 +8,30 @@ export const interactApi = {
     },
     
     // Gọi API Xóa yêu thích (DELETE)
-    removeFavorite: async (userId, movieId) => {
-        const response = await axiosClient.delete(`/favorites/${movieId}?userId=${userId}`);
+    removeFavorite: async (movieId) => {
+        const response = await axiosClient.delete(`/favorites/${movieId}`);
         return response.data;
     },
     
     // Gọi API Kiểm tra (GET)
-    checkFavorite: async (userId, movieId) => {
+    checkFavorite: async (movieId) => {
         try {
-            const response = await axiosClient.get(`/favorites/check?userId=${userId}&movieId=${movieId}`);
-            // Bóc tách lớp "data" của ApiResponse từ Spring Boot
+            const response = await axiosClient.get(`/favorites/check?movieId=${movieId}`);
             return response.data.data; 
-        } catch (error) {
+        } catch {
             return false;
         }
     },
-    getFavorites: async (userId) => {
+    getFavorites: async () => {
         try{
-            const response = await axiosClient.get(`/favorites?userId=${userId}`);        
-            return response.data.data; // Bóc tách lớp "data" của ApiResponse từ Spring Boot
+            const response = await axiosClient.get(`/favorites`);        
+            return response.data.data;
         } catch(error){
             console.error("Lỗi khi tải danh sách yêu thích:", error);
             return [];
         }
     },
-    getHistories: async (userId) => {
+    getHistories: async () => {
         try {
             const response = await axiosClient.get(`/history`);
             return response.data.data || response.data; 

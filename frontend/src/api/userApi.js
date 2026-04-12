@@ -6,11 +6,7 @@ export const userApi = {
         return response.data;
     },
     register: async (userData) => {
-        try {
-            const response = await axiosClient.post('/auth/register', userData); 
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await axiosClient.post('/auth/register', userData); 
+        return response.data;
     },
 };

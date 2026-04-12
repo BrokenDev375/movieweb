@@ -53,6 +53,13 @@ public class FavoriteController {
         return ResponseEntity.ok(ApiResponse.success(null, "Removed from favorites"));
     }
 
+    @GetMapping("/check")
+    public ResponseEntity<ApiResponse<?>> checkFavorite(@RequestParam Long movieId) {
+        Long userId = getCurrentUserId();
+        boolean isFav = favoriteService.isFavorite(userId, movieId);
+        return ResponseEntity.ok(ApiResponse.success(isFav));
+    }
+
     private Long getCurrentUserId() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByUsernameOrEmail(username)

@@ -3,6 +3,7 @@ package com.movieapp.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,6 +25,9 @@ public class Movie {
 
     @Column(length = 255)
     private String title;
+
+    @Column(name = "release_date")
+    private LocalDate releaseDate;
 
     @Column(name = "trailer_url", length = 500)
     private String trailerUrl;

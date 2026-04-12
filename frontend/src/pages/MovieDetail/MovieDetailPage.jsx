@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { movieApi } from '../../api/movieApi';
 import { FaArrowLeft, FaGlobeAsia, FaStar, FaPlay, FaHeart, FaRegHeart } from 'react-icons/fa';
@@ -21,7 +21,7 @@ const MovieDetailPage = () => {
 
     useEffect(() => {
         if(user && id){
-            interactApi.checkFavorite(user.id, id).then(isFav => {
+            interactApi.checkFavorite(id).then(isFav => {
                 setIsFavorite(isFav === true);
             });
         }
@@ -35,10 +35,10 @@ const MovieDetailPage = () => {
         
         try{
             if(isFavorite){
-                await interactApi.removeFavorite(user.id, parseInt(id));
+                await interactApi.removeFavorite(parseInt(id));
                 setIsFavorite(false);
             }else{
-                await interactApi.addFavorite({ userId: user.id, movieId: parseInt(id) });
+                await interactApi.addFavorite({ movieId: parseInt(id) });
                 setIsFavorite(true);
             }        
         } catch(err){
@@ -113,11 +113,37 @@ const MovieDetailPage = () => {
         if (match && match[2].length === 11) {
             return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
         }
-        return url; // Nếu không phải YouTube thì trả về link gốc
+        return null; // Không tìm được video ID → không phải link video YouTube hợp lệ
     };
     
-    // Kiểm tra xem link hiện tại có phải của YouTube không
-    const isYouTube = videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'));
+    // Kiểm tra xem link hiện tại có phải link VIDEO YouTube hợp lệ không (không phải search, channel, playlist...)
+    const youtubeEmbedUrl = videoUrl ? getYouTubeEmbedUrl(videoUrl) : null;
+    const isYouTube = !!youtubeEmbedUrl;
+    // Kiểm tra link có phải embed/iframe được không (các nguồn phim phổ biến)
+    const isEmbeddable = videoUrl && (
+        isYouTube ||
+        videoUrl.includes('drive.google.com') ||
+        videoUrl.includes('dailymotion.com') ||
+        videoUrl.includes('ok.ru') ||
+        videoUrl.includes('streamtape') ||
+        videoUrl.includes('dood') ||
+        videoUrl.includes('fembed') ||
+        videoUrl.includes('mixdrop') ||
+        videoUrl.includes('upstream') ||
+        videoUrl.includes('embed') ||
+        videoUrl.includes('player') ||
+        videoUrl.includes('/e/') ||
+        videoUrl.includes('iframe')
+    );
+    // Kiểm tra link có phải file video trực tiếp không
+    const isDirectVideo = videoUrl && (
+        videoUrl.endsWith('.mp4') ||
+        videoUrl.endsWith('.webm') ||
+        videoUrl.endsWith('.ogg') ||
+        videoUrl.endsWith('.m3u8') ||
+        videoUrl.includes('.mp4') ||
+        videoUrl.includes('.webm')
+    );
     return (    
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200 font-sans pb-20 transition-colors duration-300">
             
@@ -138,33 +164,68 @@ const MovieDetailPage = () => {
                         isYouTube ? (
                             <iframe 
                                 className="w-full h-full object-cover"
-                                src={getYouTubeEmbedUrl(videoUrl)} 
+                                src={youtubeEmbedUrl} 
                                 title="YouTube video player" 
                                 frameBorder="0" 
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                                 allowFullScreen
                             ></iframe>
-                        ) : (
-                            // SỬ DỤNG COMPONENT VIDEO PLAYER THÔNG MINH TẠI ĐÂY
+                        ) : isDirectVideo ? (
                             <VideoPlayer 
                                 videoUrl={videoUrl} 
                                 movieUrlId={currentEpisode ? currentEpisode.id : null} 
                             />
+                        ) : isEmbeddable ? (
+                            <iframe
+                                className="w-full h-full"
+                                src={videoUrl}
+                                title="Video player"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                                sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                            ></iframe>
+                        ) : (
+                            <iframe
+                                className="w-full h-full"
+                                src="/update.html"
+                                title="Đang cập nhật"
+                                frameBorder="0"
+                            ></iframe>
                         )
                     ) : (
-                        <div className="text-center p-10">
-                            <FaPlay className="text-6xl text-gray-400 dark:text-gray-700 mx-auto mb-4" />
-                            <p className="text-gray-500 dark:text-gray-400 text-xl">Trailer / Video đang được cập nhật...</p>
-                        </div>
+                        <iframe
+                            className="w-full h-full"
+                            src="/update.html"
+                            title="Đang cập nhật"
+                            frameBorder="0"
+                        ></iframe>
                     )}
                 </div>
 
-                {/* THÊM MỚI: KHU VỰC CHỌN TẬP PHIM (Chỉ hiện nếu có nhiều hơn 1 tập) */}
-                {episodes.length > 0 && (
+                {/* KHU VỰC CHỌN TẬP PHIM + TRAILER */}
+                {(episodes.length > 0 || movie.trailerUrl) && (
                     <div className="mb-12 bg-white dark:bg-gray-900/50 p-6 rounded-2xl border border-gray-200 dark:border-gray-800">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Danh sách tập phim</h3>
                         <div className="flex flex-wrap gap-3">
-                            {episodes.map((ep) => (
+                            {/* Nút Trailer */}
+                            {movie.trailerUrl && (
+                                <button
+                                    onClick={() => {
+                                        setCurrentEpisode(null);
+                                        setVideoUrl(movie.trailerUrl);
+                                    }}
+                                    className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 ${
+                                        !currentEpisode && videoUrl === movie.trailerUrl
+                                        ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/40 transform scale-105'
+                                        : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-300 dark:border-yellow-700 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
+                                    }`}
+                                >
+                                    <FaPlay className="text-xs" /> Trailer
+                                </button>
+                            )}
+                            {/* Các tập phim */}
+                            {episodes.map((ep, index) => (
                                 <button 
                                     key={ep.id}
                                     onClick={() => {
@@ -225,6 +286,12 @@ const MovieDetailPage = () => {
                                 <FaGlobeAsia className="text-red-600 dark:text-red-500 text-xl" />
                                 <span>{movie.nation || 'Chưa rõ'}</span>
                             </div>
+
+                            {movie.releaseDate && (
+                                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 border-l border-gray-300 dark:border-gray-700 pl-4 ml-2">
+                                    <span>Năm: <strong>{new Date(movie.releaseDate).getFullYear()}</strong></span>
+                                </div>
+                            )}
 
                             {/* ===== PHẦN HIỂN THỊ THỂ LOẠI (GENRES) ĐƯỢC THÊM MỚI ===== */}
                             {movie.genres && movie.genres.length > 0 && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { interactApi } from '../../api/interactApi';
@@ -19,7 +19,7 @@ const FavoritePage = () => {
         }
 
         const fetchFavorites = async () => {
-            const data = await interactApi.getFavorites(user.id);
+            const data = await interactApi.getFavorites();
             setFavorites(data || []);
             setLoading(false);
         };
@@ -34,10 +34,10 @@ const FavoritePage = () => {
         if(!window.confirm("Bạn có chắc chắn muốn xóa phim này khỏi danh sách yêu thích?")) return;
 
         try {
-            await interactApi.removeFavorite(user.id, movieId);
+            await interactApi.removeFavorite(movieId);
             // Cập nhật lại giao diện: Lọc bỏ bộ phim vừa xóa khỏi danh sách hiện tại
             setFavorites(favorites.filter(fav => fav.movieId !== movieId));
-        } catch (error) {
+        } catch {
             alert("Không thể xóa khỏi danh sách. Vui lòng thử lại!");
         }
     };

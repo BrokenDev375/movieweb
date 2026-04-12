@@ -53,6 +53,7 @@ public class MovieServiceImpl implements MovieService {
     public MovieDto createMovie(MovieDto dto) {
         Movie movie = Movie.builder()
                 .title(dto.getTitle())
+                .releaseDate(dto.getReleaseDate())
                 .trailerUrl(dto.getTrailerUrl())
                 .posterUrl(dto.getPosterUrl())
                 .description(dto.getDescription())
@@ -74,6 +75,7 @@ public class MovieServiceImpl implements MovieService {
         Movie movie = findMovieById(id);
 
         movie.setTitle(dto.getTitle());
+        movie.setReleaseDate(dto.getReleaseDate());
         movie.setTrailerUrl(dto.getTrailerUrl());
         movie.setPosterUrl(dto.getPosterUrl());
         movie.setDescription(dto.getDescription());
@@ -254,6 +256,7 @@ public class MovieServiceImpl implements MovieService {
         return MovieDto.builder()
                 .id(movie.getId())
                 .title(movie.getTitle())
+                .releaseDate(movie.getReleaseDate())
                 .trailerUrl(movie.getTrailerUrl())
                 .posterUrl(movie.getPosterUrl())
                 .description(movie.getDescription())

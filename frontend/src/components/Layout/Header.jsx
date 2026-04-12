@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaSearch, FaCaretDown, FaMoon, FaSun, FaUserCircle } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
+import { movieApi } from '../../api/movieApi';
 
 const Header = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     const [isDarkMode, setIsDarkMode] = useState(true);
+    const [genres, setGenres] = useState([]);
 
     useEffect(() => {
         if (isDarkMode) {
@@ -17,18 +19,10 @@ const Header = () => {
         }
     }, [isDarkMode]);
 
+    useEffect(() => {
+        movieApi.getAllGenres().then(setGenres);
+    }, []);
     const toggleTheme = () => setIsDarkMode(!isDarkMode);
-
-    // Mảng dữ liệu đã chuẩn hóa (Thể loại có ID để gọi API)
-    const genres = [
-        { id: 1, name: 'Action' },
-        { id: 2, name: 'Drama' },
-        { id: 3, name: 'Anime' },
-        { id: 4, name: 'Romance' },
-        { id: 6, name: 'Science fiction' },
-        { id: 7, name: 'Horror' },
-        { id: 8, name: 'Documentary' },
-    ];
     const countries = ['Korea', 'China', 'USA', 'Vietnam', 'Japan', 'Thailand'];
 
     const handleSearch = (e) => {

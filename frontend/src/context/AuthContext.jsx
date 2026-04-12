@@ -1,23 +1,21 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useContext } from 'react';
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-
-    useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        
-      
-        if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
-            try {
-                setUser(JSON.parse(storedUser));
-            } catch (error) {
-                console.error("Dữ liệu trong bộ nhớ bị lỗi, tiến hành dọn dẹp...");
-                localStorage.removeItem('user'); // Xóa luôn rác đi
-            }
+function getStoredUser() {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
+        try {
+            return JSON.parse(storedUser);
+        } catch {
+            localStorage.removeItem('user');
         }
-    }, []);
+    }
+    return null;
+}
+
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(getStoredUser);
 
     const login = (userData) => {
         // Chỉ lưu nếu userData thực sự có dữ liệu
@@ -42,6 +40,7 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
     return useContext(AuthContext);
 };

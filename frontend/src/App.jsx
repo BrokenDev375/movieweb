@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext'; 
 import Header from './components/Layout/Header'; 
 import HomePage from './pages/Home/HomePage';
@@ -9,6 +9,7 @@ import FavoritePage from './pages/Favourite/FavouritePage';
 import HistoryPage from './pages/History/HistoryPage';
 import SearchPage from './pages/Search/SearchPage';
 import RegisterPage from './pages/Auth/RegisterPage';
+import ProfilePage from './pages/Profile/ProfilePage';
 
 function App() {
   return (
@@ -23,6 +24,10 @@ function App() {
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/phim-bo" element={<Navigate to="/search?keyword=phim+bộ" replace />} />
+          <Route path="/phim-le" element={<Navigate to="/search?keyword=phim+lẻ" replace />} />
+          <Route path="/chieu-rap" element={<Navigate to="/search?keyword=chiếu+rạp" replace />} />
         </Routes>
       </div>
     </AuthProvider>  

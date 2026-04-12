@@ -1,8 +1,8 @@
 import axiosClient from './axiosClient';
 
 export const movieApi = {
-    getAllMovies: async () => {
-        const response = await axiosClient.get('/movies');
+    getAllMovies: async (page = 0, size = 20) => {
+        const response = await axiosClient.get(`/movies?page=${page}&size=${size}`);
         return response.data; 
     },
     getMovieById: async (id) => {
@@ -28,17 +28,26 @@ export const movieApi = {
             return [];
         }
     },
-    searchMovies: async (keyword = '', genreId = '', nation = '') => {
+    searchMovies: async (keyword = '', genreId = '', nation = '', page = 0, size = 20) => {
         try {
-            let query = `/movies/search?`;
-            if (keyword) query += `keyword=${keyword}&`;
+            let query = `/movies/search?page=${page}&size=${size}&`;
+            if (keyword) query += `keyword=${encodeURIComponent(keyword)}&`;
             if (genreId) query += `genreId=${genreId}&`;
-            if (nation) query += `nation=${nation}&`;
+            if (nation) query += `nation=${encodeURIComponent(nation)}&`;
 
             const response = await axiosClient.get(query);
-            return response.data.data.content || response.data.data || []; 
+            return response.data.data || response.data; 
         } catch (error) {
             console.error("Lỗi tìm kiếm/lọc phim:", error);
+            return { content: [], totalPages: 0 };
+        }
+    },
+    getAllGenres: async () => {
+        try {
+            const response = await axiosClient.get('/genres');
+            return response.data.data || response.data || [];
+        } catch (error) {
+            console.warn("Lỗi lấy thể loại:", error.message);
             return [];
         }
     },

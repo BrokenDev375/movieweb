@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { FaUserCircle, FaPaperPlane } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -15,12 +15,11 @@ const CommentSection = ({ movieId, comments, setComments }) => {
 
         try {
             const payload = {
-                userId: user.id,
                 movieId: movieId,
                 content: newComment
             };
 
-            const res = await movieApi.postComment(payload);
+            await movieApi.postComment(payload);
             
             const commentToDisplay = {
                 id: Math.random(),
@@ -33,7 +32,7 @@ const CommentSection = ({ movieId, comments, setComments }) => {
             setComments([commentToDisplay, ...comments]); 
             setNewComment(''); 
 
-        } catch (error) {
+        } catch {
             alert("Lỗi khi gửi bình luận!");
         } finally {
             setIsSubmitting(false);
