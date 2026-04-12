@@ -31,3 +31,9 @@ logging:
   level:
     com.movieweb: DEBUG
     org.springframework.security: INFO
+
+recommendation:
+  service:
+    base-url: http://localhost:8000
+    connect-timeout-ms: 2000
+    read-timeout-ms: 5000

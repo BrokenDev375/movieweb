@@ -1,0 +1,18 @@
+# FastAPI AI Microservice — Python Dependencies
+# Install: pip install -r requirements.txt
+
+# Web framework
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+
+# Settings management
+pydantic==2.6.4
+pydantic-settings==2.2.1
+
+
+# ML / model
+torch==2.2.1          # CPU-only: torch==2.2.1+cpu  (use index URL below for CPU builds)
+numpy==1.26.4
+
+# Optional: environment loading
+python-dotenv==1.0.1
