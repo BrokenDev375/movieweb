@@ -19,3 +19,23 @@ Thumbs.db
 # Local tools
 .agents/
 skills-lock.json
+
+/backend/target/
+/frontend/node_modules/
+/frontend/dist/
+/.idea/
+
+# Recommender
+/recommender/venv/
+/recommender/__pycache__/
+/recommender/**/*.pyc
+/recommender/.env
+/recommender/outputs/
+/recommender/data/raw/
+/recommender/data/ml-100k/
+/recommender/data/processed/
+/recommender/models/*.pt
+/recommender/models/*.npz
+/recommender/db/seed_full.sql
+/recommender/scripts/tune_results.json
+/recommender/.ipynb_checkpoints/

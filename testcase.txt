@@ -1,0 +1,11 @@
+cd recommender
+python -m uvicorn api.main:app --reload --port 8000
+cd backend
+mvn spring-boot:run
+cd frontend
+npm run dev
+Ngân hàng	NCB
+Số thẻ	9704198526191432198
+Tên chủ thẻ	NGUYEN VAN A
+Ngày phát hành	07/15
+OTP	123456
