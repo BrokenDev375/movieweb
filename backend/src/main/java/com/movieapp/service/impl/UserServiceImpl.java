@@ -124,7 +124,8 @@ public class UserServiceImpl implements UserService {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getRole().toLowerCase(Locale.ROOT)
+                user.getRole().toLowerCase(Locale.ROOT),
+                user.getPremiumUntil()
         );
     }
 }

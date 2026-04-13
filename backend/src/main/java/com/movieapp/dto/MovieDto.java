@@ -40,5 +40,7 @@ public class MovieDto {
     @Size(max = 100)
     private String nation;
 
+    private Boolean isPremium;
+
     private List<Long> genreIds; // danh sách ID thể loại khi tạo/sửa phim
 }

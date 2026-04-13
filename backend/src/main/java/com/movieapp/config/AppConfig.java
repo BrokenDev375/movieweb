@@ -64,6 +64,8 @@ public class AppConfig {
                         }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/payments/vnpay-return").permitAll()
+                        .requestMatchers("/api/payments/plans").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/movies/**", "/api/genres/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll())

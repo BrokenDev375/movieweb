@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { movieApi } from '../../api/movieApi';
-import { FaSearch, FaPlay, FaFilter, FaChevronRight } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaChevronRight, FaTimes } from 'react-icons/fa';
 import MovieCard from '../../components/Movie/MovieCard';
 
 const PAGE_SIZE = 20;
+const COUNTRIES = ['Korea', 'China', 'USA', 'Vietnam', 'Japan', 'Thailand'];
 
 const SearchPage = () => {
     const [searchParams] = useSearchParams();
-    
+    const navigate = useNavigate();
+
     const keyword = searchParams.get('keyword') || '';
     const genreId = searchParams.get('genreId') || '';
     const genreName = searchParams.get('genreName') || '';
@@ -18,6 +20,46 @@ const SearchPage = () => {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+    const [genres, setGenres] = useState([]);
+
+    // Local filter state
+    const [filterKeyword, setFilterKeyword] = useState(keyword);
+    const [filterGenreId, setFilterGenreId] = useState(genreId);
+    const [filterNation, setFilterNation] = useState(nation);
+
+    useEffect(() => {
+        movieApi.getAllGenres().then(setGenres);
+    }, []);
+
+    // Sync local state when URL params change (e.g. from Header clicks)
+    useEffect(() => {
+        setFilterKeyword(keyword);
+        setFilterGenreId(genreId);
+        setFilterNation(nation);
+    }, [keyword, genreId, nation]);
+
+    const buildSearchUrl = (kw, gId, nat) => {
+        const params = new URLSearchParams();
+        if (kw) params.set('keyword', kw);
+        if (gId) {
+            params.set('genreId', gId);
+            const genre = genres.find(g => String(g.id) === String(gId));
+            if (genre) params.set('genreName', genre.name);
+        }
+        if (nat) params.set('nation', nat);
+        return `/search?${params.toString()}`;
+    };
+
+    const applyFilters = () => {
+        navigate(buildSearchUrl(filterKeyword.trim(), filterGenreId, filterNation));
+    };
+
+    const clearFilters = () => {
+        setFilterKeyword('');
+        setFilterGenreId('');
+        setFilterNation('');
+        navigate('/search');
+    };
 
     const fetchPage = async (p) => {
         setLoading(true);
@@ -36,14 +78,82 @@ const SearchPage = () => {
         fetchPage(0);
     }, [keyword, genreId, nation]);
 
-    let pageTitle = "Tất cả phim";
-    if (keyword) pageTitle = `Kết quả tìm kiếm: "${keyword}"`;
-    else if (genreName) pageTitle = `Phim thể loại: ${genreName}`;
-    else if (nation) pageTitle = `Phim quốc gia: ${nation}`;
+    const activeFilters = [];
+    if (keyword) activeFilters.push(`"${keyword}"`);
+    if (genreName) activeFilters.push(genreName);
+    else if (genreId) activeFilters.push(`Thể loại #${genreId}`);
+    if (nation) activeFilters.push(nation);
+
+    const pageTitle = activeFilters.length > 0
+        ? `Kết quả: ${activeFilters.join(' + ')}`
+        : 'Tất cả phim';
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#141414] p-4 md:p-8 text-gray-900 dark:text-white">
             <div className="max-w-7xl mx-auto">
+                {/* Filter Bar */}
+                <div className="mb-6 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+                    <div className="flex flex-wrap items-end gap-4">
+                        {/* Keyword */}
+                        <div className="flex-1 min-w-[200px]">
+                            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Từ khoá</label>
+                            <input
+                                type="text"
+                                value={filterKeyword}
+                                onChange={e => setFilterKeyword(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && applyFilters()}
+                                placeholder="Nhập tên phim..."
+                                className="w-full bg-gray-100 dark:bg-[#2b2b2b] text-gray-900 dark:text-gray-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-red-500"
+                            />
+                        </div>
+                        {/* Genre */}
+                        <div className="min-w-[160px]">
+                            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Thể loại</label>
+                            <select
+                                value={filterGenreId}
+                                onChange={e => setFilterGenreId(e.target.value)}
+                                className="w-full bg-gray-100 dark:bg-[#2b2b2b] text-gray-900 dark:text-gray-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-red-500"
+                            >
+                                <option value="">Tất cả</option>
+                                {genres.map(g => (
+                                    <option key={g.id} value={g.id}>{g.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        {/* Nation */}
+                        <div className="min-w-[160px]">
+                            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Quốc gia</label>
+                            <select
+                                value={filterNation}
+                                onChange={e => setFilterNation(e.target.value)}
+                                className="w-full bg-gray-100 dark:bg-[#2b2b2b] text-gray-900 dark:text-gray-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-red-500"
+                            >
+                                <option value="">Tất cả</option>
+                                {COUNTRIES.map(c => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                        </div>
+                        {/* Buttons */}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={applyFilters}
+                                className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2"
+                            >
+                                <FaSearch /> Tìm kiếm
+                            </button>
+                            {(filterKeyword || filterGenreId || filterNation) && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg text-sm transition flex items-center gap-1"
+                                >
+                                    <FaTimes /> Xoá
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
                 <header className="mb-8 border-b border-gray-300 dark:border-gray-800 pb-4">
                     <h1 className="text-2xl font-bold flex items-center gap-3">
                         {keyword ? <FaSearch className="text-red-600" /> : <FaFilter className="text-red-600" />}

@@ -35,3 +35,26 @@ class HealthResponse(BaseModel):
     model_loaded: bool
     n_users: int
     n_movies: int
+
+
+class RetrainRequest(BaseModel):
+    """POST /retrain request body."""
+    secret: str = Field(..., description="Secret key to authorize retrain")
+    n_epochs: int = Field(default=30, ge=5, le=100)
+    batch_size: int = Field(default=256, ge=64, le=1024)
+    learning_rate: float = Field(default=5e-4, gt=0, le=0.01)
+
+
+class RetrainResponse(BaseModel):
+    """POST /retrain response."""
+    status: str  # "success" or "no_change"
+    message: str = ""
+    n_users: int
+    n_movies: int
+    n_ratings_total: int
+    n_ratings_ml100k: int
+    n_ratings_app: int
+    val_rmse: float
+    val_mae: float
+    elapsed_seconds: float
+    model_path: str

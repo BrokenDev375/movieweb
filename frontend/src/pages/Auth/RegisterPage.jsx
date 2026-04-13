@@ -10,6 +10,7 @@ const RegisterPage = () => {
         confirmPassword: ''
     });
     const [error, setError] = useState('');
+    const [fieldErrors, setFieldErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -20,6 +21,7 @@ const RegisterPage = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
         setError('');
+        setFieldErrors({});
 
         if (formData.password !== formData.confirmPassword) {
             setError('Mật khẩu nhập lại không khớp!');
@@ -38,8 +40,16 @@ const RegisterPage = () => {
             navigate('/login'); 
             
         } catch (err) {
-            if (err.response && err.response.data && err.response.data.message) {
-                setError(err.response.data.message);
+            if (err.response && err.response.data) {
+                const resData = err.response.data;
+                if (resData.data && typeof resData.data === 'object') {
+                    setFieldErrors(resData.data);
+                    setError('');
+                } else if (resData.message) {
+                    setError(resData.message);
+                } else {
+                    setError("Đăng ký thất bại. Vui lòng kiểm tra lại thông tin!");
+                }
             } else {
                 setError("Đăng ký thất bại. Vui lòng kiểm tra lại thông tin!");
             }
@@ -56,6 +66,13 @@ const RegisterPage = () => {
                 </h2>
                 
                 {error && <p className="text-red-500 text-center mb-4 bg-red-100 dark:bg-red-500/10 py-2 rounded">{error}</p>}
+                {Object.keys(fieldErrors).length > 0 && (
+                    <div className="mb-4 bg-red-100 dark:bg-red-500/10 py-3 px-4 rounded">
+                        {Object.values(fieldErrors).map((msg, i) => (
+                            <p key={i} className="text-red-500 text-sm">{msg}</p>
+                        ))}
+                    </div>
+                )}
                 
                 <form onSubmit={handleRegister} className="space-y-5">
                     <div>
@@ -66,8 +83,9 @@ const RegisterPage = () => {
                             required
                             value={formData.username}
                             onChange={handleChange}
-                            className="w-full bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-transparent p-3 rounded focus:ring-2 focus:ring-red-600 outline-none transition-colors duration-300"
+                            className={`w-full bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white border ${fieldErrors.username ? 'border-red-500' : 'border-gray-300 dark:border-transparent'} p-3 rounded focus:ring-2 focus:ring-red-600 outline-none transition-colors duration-300`}
                         />
+                        {fieldErrors.username && <p className="text-red-500 text-xs mt-1">{fieldErrors.username}</p>}
                     </div>
 
                     <div>
@@ -78,8 +96,9 @@ const RegisterPage = () => {
                             required
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-transparent p-3 rounded focus:ring-2 focus:ring-red-600 outline-none transition-colors duration-300"
+                            className={`w-full bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white border ${fieldErrors.email ? 'border-red-500' : 'border-gray-300 dark:border-transparent'} p-3 rounded focus:ring-2 focus:ring-red-600 outline-none transition-colors duration-300`}
                         />
+                        {fieldErrors.email && <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>}
                     </div>
 
                     <div>
@@ -90,8 +109,9 @@ const RegisterPage = () => {
                             required
                             value={formData.password}
                             onChange={handleChange}
-                            className="w-full bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-transparent p-3 rounded focus:ring-2 focus:ring-red-600 outline-none transition-colors duration-300"
+                            className={`w-full bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white border ${fieldErrors.password ? 'border-red-500' : 'border-gray-300 dark:border-transparent'} p-3 rounded focus:ring-2 focus:ring-red-600 outline-none transition-colors duration-300`}
                         />
+                        {fieldErrors.password && <p className="text-red-500 text-xs mt-1">{fieldErrors.password}</p>}
                     </div>
 
                     <div>

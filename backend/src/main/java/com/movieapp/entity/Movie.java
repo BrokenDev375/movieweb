@@ -47,6 +47,10 @@ public class Movie {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "is_premium", nullable = false)
+    @Builder.Default
+    private Boolean isPremium = false;
+
     // Relationships
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

@@ -29,6 +29,26 @@ class Settings(BaseSettings):
     popular_movies_count: int = 20
     cors_origins: str = "http://localhost:8080,http://localhost:3000,http://localhost:5173"
 
+    # MySQL connection for retrain (reads app ratings)
+    db_host: str = "localhost"
+    db_port: int = 3306
+    db_name: str = "movie_web"
+    db_user: str = "root"
+    db_password: str = "D@tgutboi2005"
+
+    # Retrain settings
+    retrain_secret: str = "retrain-secret-key"
+
+    @property
+    def db_config(self) -> dict:
+        return {
+            "host": self.db_host,
+            "port": self.db_port,
+            "database": self.db_name,
+            "user": self.db_user,
+            "password": self.db_password,
+        }
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",")]

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FaSearch, FaCaretDown, FaMoon, FaSun, FaUserCircle } from 'react-icons/fa';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { FaSearch, FaCaretDown, FaMoon, FaSun, FaUserCircle, FaCrown } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { movieApi } from '../../api/movieApi';
 
 const Header = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const { user, logout, isPremium } = useAuth();
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [genres, setGenres] = useState([]);
 
@@ -28,8 +28,17 @@ const Header = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            navigate(`/search?keyword=${searchQuery}`);
+            const params = new URLSearchParams(window.location.search);
+            params.set('keyword', searchQuery.trim());
+            navigate(`/search?${params.toString()}`);
         }
+    };
+
+    const navigateWithFilter = (key, value, extraParams = {}) => {
+        const params = new URLSearchParams(window.location.search);
+        params.set(key, value);
+        Object.entries(extraParams).forEach(([k, v]) => params.set(k, v));
+        navigate(`/search?${params.toString()}`);
     };
 
     const handleLogout = () => {
@@ -58,9 +67,6 @@ const Header = () => {
                 {/* 2. KHU VỰC MENU LINK */}
                 <div className="flex-grow flex items-center space-x-6 text-[15px] font-medium hidden md:flex">
                     <Link to="/" className="text-red-600 dark:text-white font-bold text-lg tracking-wider hover:text-red-500 transition">PHIM HAY</Link>
-                    <Link to="/phim-bo" className="hover:text-red-600 dark:hover:text-white transition">Phim Bộ</Link>
-                    <Link to="/phim-le" className="hover:text-red-600 dark:hover:text-white transition">Phim Lẻ</Link>
-                    <Link to="/chieu-rap" className="hover:text-red-600 dark:hover:text-white transition">Phim Chiếu Rạp</Link>
                     
                     {/* DROPDOWN: THỂ LOẠI */}
                     <div className="relative group py-2">
@@ -71,9 +77,9 @@ const Header = () => {
                             <ul className="grid grid-cols-3 gap-3">
                                 {genres.map((genre, index) => (
                                     <li key={index}>
-                                        <Link to={`/search?genreId=${genre.id}&genreName=${genre.name}`} className="text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition block">
+                                        <button onClick={() => navigateWithFilter('genreId', genre.id, { genreName: genre.name })} className="text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition block w-full text-left">
                                             {genre.name}
-                                        </Link>
+                                        </button>
                                     </li>
                                 ))}
                             </ul>
@@ -89,14 +95,19 @@ const Header = () => {
                             <ul className="grid grid-cols-2 gap-3">
                                 {countries.map((country, index) => (
                                     <li key={index}>
-                                        <Link to={`/search?nation=${country}`} className="text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition block">
+                                        <button onClick={() => navigateWithFilter('nation', country)} className="text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition block w-full text-left">
                                             {country}
-                                        </Link>
+                                        </button>
                                     </li>
                                 ))}
                             </ul>
                         </div>
                     </div>
+
+                    {/* PREMIUM LINK */}
+                    <Link to="/premium" className="flex items-center gap-1 text-yellow-500 hover:text-yellow-400 transition font-semibold">
+                        <FaCrown className="text-sm" /> Premium
+                    </Link>
                 </div>
 
                 {/* 3. KHU VỰC USER & ĐỔI THEME */}
@@ -109,7 +120,10 @@ const Header = () => {
                         <div className="relative group py-2">
                             <button className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-white transition focus:outline-none font-bold">
                                 <FaUserCircle className="text-2xl" />
-                                <span>{user.username}</span>
+                                <span className="flex items-center gap-1">
+                                    {user.username}
+                                    {isPremium() && <FaCrown className="text-yellow-400 text-xs" />}
+                                </span>
                                 <FaCaretDown className="text-xs" />
                             </button>
                             
@@ -117,6 +131,12 @@ const Header = () => {
                                 <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">Trang cá nhân</Link>
                                 <Link to="/favorites" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">Phim yêu thích</Link>
                                 <Link to="/history" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">Lịch sử xem</Link>
+                                {user.role === 'ADMIN' && (
+                                    <>
+                                        <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                                        <Link to="/admin" className="block px-4 py-2 text-sm text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-gray-800 transition font-semibold">Admin Dashboard</Link>
+                                    </>
+                                )}
                                 <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
                                 <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-gray-800 transition">Đăng xuất</button>
                             </div>

@@ -33,8 +33,21 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('user');
     };
 
+    const updateUser = (updates) => {
+        setUser(prev => {
+            const updated = { ...prev, ...updates };
+            localStorage.setItem('user', JSON.stringify(updated));
+            return updated;
+        });
+    };
+
+    const isPremium = () => {
+        if (!user || !user.premiumUntil) return false;
+        return new Date(user.premiumUntil) > new Date();
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, login, logout, updateUser, isPremium }}>
             {children}
         </AuthContext.Provider>
     );

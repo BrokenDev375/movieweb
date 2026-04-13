@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { movieApi } from '../../api/movieApi';
-import { FaArrowLeft, FaGlobeAsia, FaStar, FaPlay, FaHeart, FaRegHeart } from 'react-icons/fa';
+import { FaArrowLeft, FaGlobeAsia, FaStar, FaPlay, FaHeart, FaRegHeart, FaCrown, FaLock } from 'react-icons/fa';
 import CommentSection from '../../components/Movie/CommentSection'; 
 import { useAuth } from '../../context/AuthContext';
 import { interactApi } from '../../api/interactApi';
@@ -9,7 +9,7 @@ import VideoPlayer from '../../components/Movie/VideoPlayer';
 
 const MovieDetailPage = () => {
     const { id } = useParams();
-    const {user} = useAuth();
+    const {user, isPremium} = useAuth();
     const [movie, setMovie] = useState(null);
     const [videoUrl, setVideoUrl] = useState('');
     const [comments, setComments] = useState([]);
@@ -144,6 +144,11 @@ const MovieDetailPage = () => {
         videoUrl.includes('.mp4') ||
         videoUrl.includes('.webm')
     );
+
+    // Premium check: if movie is premium and user is not premium, lock content
+    const isMoviePremium = movie?.isPremium === true;
+    const canWatch = !isMoviePremium || isPremium();
+
     return (    
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200 font-sans pb-20 transition-colors duration-300">
             
@@ -153,14 +158,37 @@ const MovieDetailPage = () => {
                     <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition duration-300">
                         <FaArrowLeft className="text-2xl" />
                     </Link>
-                    <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">{movie.title}</h1>
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                        {movie.title}
+                        {isMoviePremium && (
+                            <span className="ml-3 inline-flex items-center gap-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-xs font-bold px-2.5 py-1 rounded-full align-middle">
+                                <FaCrown className="text-[10px]" /> PREMIUM
+                            </span>
+                        )}
+                    </h1>
                 </div>
             </div>
 
             <div className="max-w-7xl mx-auto p-4 md:p-8 mt-4">
                 {/* === KHU VỰC 1: TRÌNH PHÁT VIDEO === */}
                 <div className="mb-6 bg-gray-900 dark:bg-black rounded-xl overflow-hidden shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-800 aspect-video relative group flex items-center justify-center transition-colors duration-300">
-                    {videoUrl ? (
+                    {isMoviePremium && !canWatch ? (
+                        /* Premium lock overlay */
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-10">
+                            <FaLock className="text-5xl text-yellow-400 mb-4" />
+                            <div className="flex items-center gap-2 mb-2">
+                                <FaCrown className="text-yellow-400" />
+                                <span className="text-xl font-bold text-yellow-400">Phim Premium</span>
+                            </div>
+                            <p className="text-gray-400 mb-6 text-center px-4">Nâng cấp tài khoản Premium để xem nội dung này</p>
+                            <Link
+                                to="/premium"
+                                className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-400 transition shadow-lg"
+                            >
+                                Nâng cấp Premium
+                            </Link>
+                        </div>
+                    ) : videoUrl ? (
                         isYouTube ? (
                             <iframe 
                                 className="w-full h-full object-cover"

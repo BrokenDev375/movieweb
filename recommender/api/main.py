@@ -25,7 +25,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import api.model_loader as loader
 from api.config import get_settings
 from api.recommender_service import get_recommendations
-from api.schemas import HealthResponse, RecommendationResponse
+from api.schemas import HealthResponse, RecommendationResponse, RetrainRequest, RetrainResponse
 
 logging.basicConfig(
     level=logging.INFO,
@@ -63,7 +63,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -110,3 +110,58 @@ def health():
         n_users=loader.n_users,
         n_movies=loader.n_movies,
     )
+
+
+# ── Retrain endpoint ─────────────────────────────────────────────────────────
+
+_retrain_lock = False  # simple lock to prevent concurrent retrains
+
+
+@app.post(
+    "/retrain",
+    response_model=RetrainResponse,
+    summary="Retrain model with latest app ratings",
+    tags=["Admin"],
+)
+def retrain(req: RetrainRequest):
+    """
+    Trigger model retraining. Merges ML-100K baseline data with live MySQL
+    ratings, trains a new HybridRecommender, and hot-reloads it.
+
+    Requires a secret key for authorization.
+    """
+    global _retrain_lock
+
+    if req.secret != settings.retrain_secret:
+        raise HTTPException(status_code=403, detail="Invalid retrain secret")
+
+    if _retrain_lock:
+        raise HTTPException(status_code=409, detail="Retrain already in progress")
+
+    _retrain_lock = True
+    try:
+        from api.retrain import run_retrain
+
+        result = run_retrain(
+            data_dir=settings.resolved_data_dir,
+            model_path=settings.resolved_model_path,
+            db_config=settings.db_config,
+            n_epochs=req.n_epochs,
+            batch_size=req.batch_size,
+            learning_rate=req.learning_rate,
+        )
+
+        # Hot-reload only if model was actually retrained
+        if result["status"] == "success":
+            loader.reload_model(
+                model_path=settings.resolved_model_path,
+                data_dir=settings.resolved_data_dir,
+            )
+
+        return RetrainResponse(**result)
+
+    except Exception as exc:
+        logger.error("Retrain failed: %s", exc)
+        raise HTTPException(status_code=500, detail=f"Retrain failed: {exc}")
+    finally:
+        _retrain_lock = False

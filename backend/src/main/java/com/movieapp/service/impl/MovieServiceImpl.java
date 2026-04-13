@@ -58,6 +58,7 @@ public class MovieServiceImpl implements MovieService {
                 .posterUrl(dto.getPosterUrl())
                 .description(dto.getDescription())
                 .nation(dto.getNation())
+                .isPremium(dto.getIsPremium() != null ? dto.getIsPremium() : false)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -80,6 +81,7 @@ public class MovieServiceImpl implements MovieService {
         movie.setPosterUrl(dto.getPosterUrl());
         movie.setDescription(dto.getDescription());
         movie.setNation(dto.getNation());
+        if (dto.getIsPremium() != null) movie.setIsPremium(dto.getIsPremium());
         movie.setUpdatedAt(LocalDateTime.now());
 
         if (dto.getGenreIds() != null) {
@@ -261,6 +263,7 @@ public class MovieServiceImpl implements MovieService {
                 .posterUrl(movie.getPosterUrl())
                 .description(movie.getDescription())
                 .nation(movie.getNation())
+                .isPremium(movie.getIsPremium())
                 .createdAt(movie.getCreatedAt())
                 .updatedAt(movie.getUpdatedAt())
                 .genres(genreDtos)

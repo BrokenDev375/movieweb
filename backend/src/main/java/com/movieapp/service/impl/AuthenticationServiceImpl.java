@@ -56,7 +56,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getRole(),
-                token
+                token,
+                user.getPremiumUntil()
         );
     }
 }

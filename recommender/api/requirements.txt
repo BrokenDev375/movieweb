@@ -14,5 +14,8 @@ pydantic-settings==2.2.1
 torch==2.2.1          # CPU-only: torch==2.2.1+cpu  (use index URL below for CPU builds)
 numpy==1.26.4
 
+# Database (for retraining from app ratings)
+mysql-connector-python==8.3.0
+
 # Optional: environment loading
 python-dotenv==1.0.1

@@ -37,3 +37,9 @@ recommendation:
     base-url: http://localhost:8000
     connect-timeout-ms: 2000
     read-timeout-ms: 5000
+
+vnpay:
+  tmn-code: 685K6G1W
+  hash-secret: 2TZWFL11P3Y7VPYOQO2SZY73PFZ4ZOGM
+  pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url: http://localhost:8080/api/payments/vnpay-return

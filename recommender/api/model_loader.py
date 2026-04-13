@@ -60,20 +60,36 @@ def load_everything(model_path: str, data_dir: str) -> None:
     genres_file  = os.path.join(data_dir, "u.genre")
 
     # ── Step 1: Build ID maps ─────────────────────────────────────────────
+    # If a retrain mapping file exists, use it (contains merged ML-100K + MySQL IDs)
+    mapping_path = model_path.replace(".pt", "_mapping.pt")
+    if os.path.exists(mapping_path):
+        logger.info("Loading ID maps from retrain mapping: %s", mapping_path)
+        saved = torch.load(mapping_path, map_location="cpu")
+        user_id_map     = {int(k): int(v) for k, v in saved["user_id_map"].items()}
+        movie_id_map    = {int(k): int(v) for k, v in saved["movie_id_map"].items()}
+        idx_to_movie_id = {v: k for k, v in movie_id_map.items()}
+        n_users, n_movies = len(user_id_map), len(movie_id_map)
+        logger.info("ID maps loaded from mapping: %d users, %d movies", n_users, n_movies)
+    else:
+        logger.info("Reading ratings from %s", ratings_file)
+        raw_for_map: list[tuple[int, int, float]] = []
+        with open(ratings_file, encoding="latin-1") as f:
+            for row in csv.reader(f, delimiter="\t"):
+                raw_for_map.append((int(row[0]), int(row[1]), float(row[2])))
+        unique_users  = sorted({r[0] for r in raw_for_map})
+        unique_movies = sorted({r[1] for r in raw_for_map})
+        user_id_map      = {uid: i for i, uid in enumerate(unique_users)}
+        movie_id_map     = {mid: i for i, mid in enumerate(unique_movies)}
+        idx_to_movie_id  = {i: mid for mid, i in movie_id_map.items()}
+        n_users, n_movies = len(user_id_map), len(movie_id_map)
+        logger.info("ID maps: %d users, %d movies", n_users, n_movies)
+
+    # Always read raw ML-100K ratings for popularity list + model train_ratings
     logger.info("Reading ratings from %s", ratings_file)
     raw: list[tuple[int, int, float]] = []
     with open(ratings_file, encoding="latin-1") as f:
         for row in csv.reader(f, delimiter="\t"):
             raw.append((int(row[0]), int(row[1]), float(row[2])))
-
-    unique_users  = sorted({r[0] for r in raw})
-    unique_movies = sorted({r[1] for r in raw})
-
-    user_id_map      = {uid: i for i, uid in enumerate(unique_users)}
-    movie_id_map     = {mid: i for i, mid in enumerate(unique_movies)}
-    idx_to_movie_id  = {i: mid for mid, i in movie_id_map.items()}
-    n_users, n_movies = len(user_id_map), len(movie_id_map)
-    logger.info("ID maps: %d users, %d movies", n_users, n_movies)
 
     # ── Step 2: Popularity list (cold-start) ──────────────────────────────
     rating_sum: dict[int, float] = defaultdict(float)
@@ -122,6 +138,7 @@ def load_everything(model_path: str, data_dir: str) -> None:
     mapped_ratings = [
         (user_id_map[uid], movie_id_map[mid], rating)
         for uid, mid, rating in raw
+        if uid in user_id_map and mid in movie_id_map
     ]
 
     model = HybridRecommender(
@@ -149,3 +166,14 @@ def load_everything(model_path: str, data_dir: str) -> None:
 
 def is_loaded() -> bool:
     return model is not None and bool(user_id_map)
+
+
+def reload_model(model_path: str, data_dir: str) -> None:
+    """
+    Hot-reload: re-run load_everything with the new model file.
+    Called after retrain completes to swap in the newly trained model
+    without restarting the FastAPI process.
+    """
+    logger.info("=== Hot-reloading model from %s ===", model_path)
+    load_everything(model_path=model_path, data_dir=data_dir)
+    logger.info("=== Model hot-reload complete: %d users, %d movies ===", n_users, n_movies)
